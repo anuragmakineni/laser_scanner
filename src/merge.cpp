@@ -18,17 +18,20 @@ class Node {
  private:
   ros::NodeHandle pnh_;
   vector<pcl::PointCloud<pcl::PointXYZ> > clouds;
+  ros::Subscriber sub;
+  ros::ServiceServer service;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
-  ros::Subscriber sub = pnh_.subscribe("project", 10, &Node::receivePointCloud, this);
-  ros::ServiceServer service = pnh_.advertiseService("finish", &Node::performMerge, this);
+  sub = pnh_.subscribe("project", 10, &Node::receivePointCloud, this);
+  service = pnh_.advertiseService("finish", &Node::performMerge, this);
+  ROS_INFO("init");
 }
 
 void Node::receivePointCloud(const std_msgs::String::ConstPtr& msg)
 {
   pcl::PointCloud<pcl::PointXYZ> cloud;
-  
+
 }
 
 bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response& res)
@@ -41,16 +44,10 @@ bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Resp
 
 
 int main(int argc, char** argv) {
-  
-  printf("test\n"); 
-  fflush(stdout);
-ROS_WARN("JKALDSFJKJFASFJSA");
-  ros::init(argc, argv, "merge");
 
+  ros::init(argc, argv, "merge");
   ros::NodeHandle pnh("~");
   merge::Node node(pnh);
-  printf("test"); 
-  ROS_INFO("started merge node");
   ros::spin();
   return 0;
 }
