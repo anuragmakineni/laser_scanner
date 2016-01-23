@@ -1,0 +1,6 @@
+<launch>
+
+<node name="merge" pkg="laser_scanner" type="laser_scanner" ns="test">
+</node>
+
+</launch>
