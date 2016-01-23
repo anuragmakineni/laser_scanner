@@ -5,9 +5,18 @@
   <remap from="/laser_scanner/merge/project_top" to="/laser_scanner/project/project_top" />
 </node>
 
-<node name="project" pkg="laser_scanner" type="project" ns="laser_scanner" output="screen"/>
+<node name="project" pkg="laser_scanner" type="project" ns="laser_scanner" output="screen">
+  <remap from="/laser_scanner/project/laser/scan1" to="/laser/scan1"/>
+  <remap from="/laser_scanner/project/laser/scan2" to="/laser/scan2"/>
+</node>
+
+<node name="table_driver" pkg="laser_scanner" type="table_driver.py" ns="laser_scanner" output="screen">
+  <remap from="/laser_scanner/laser/scan1" to="/laser/scan1"/>
+  <remap from="/laser_scanner/laser/scan2" to="/laser/scan2"/>
+</node>
 
 <include file="$(find laser_scanner)/launch/dynamixel_manager.launch"/>
 <include file="$(find laser_scanner)/launch/position.launch"/>
+<include file="$(find laser_scanner)/launch/laser.launch"/>
 
 </launch>

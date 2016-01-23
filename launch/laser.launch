@@ -1,0 +1,30 @@
+<launch>
+  <arg name="skip" default="1"/>
+  <arg name="use_usb" default="true"/>
+
+  <node name="side_laser" pkg="urg_node" type="urg_node" respawn="false" output="screen">
+    <param name="frame_id" type="string" value="laser1"/>
+    <param name="calibrate_time" type="bool" value="true"/>
+    <param name="ip_address" type="string" value="192.168.0.10" unless="$(arg use_usb)"/>
+    <param name="serial_port" type="string" value="/dev/ttyACM0" if="$(arg use_usb)"/>
+    <param name="cluster" type="int" value="1"/>
+    <param name="skip" type="int" value="$(arg skip)"/>
+    <param name="intensity" type="bool" value="false"/>
+    <param name="angle_min" type="double" value="-2.2689"/>
+    <param name="angle_max" type="double" value="2.2689"/>
+    <remap from="scan" to="laser/scan1"/>
+  </node>
+
+  <node name="top_laser" pkg="urg_node" type="urg_node" respawn="false" output="screen">
+    <param name="frame_id" type="string" value="laser2"/>
+    <param name="calibrate_time" type="bool" value="true"/>
+    <param name="ip_address" type="string" value="192.168.0.10" unless="$(arg use_usb)"/>
+    <param name="serial_port" type="string" value="/dev/ttyACM1" if="$(arg use_usb)"/>
+    <param name="cluster" type="int" value="1"/>
+    <param name="skip" type="int" value="$(arg skip)"/>
+    <param name="intensity" type="bool" value="false"/>
+    <param name="angle_min" type="double" value="-2.2689"/>
+    <param name="angle_max" type="double" value="2.2689"/>
+    <remap from="scan" to="laser/scan2"/>
+  </node>
+</launch>

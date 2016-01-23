@@ -8,7 +8,7 @@
                     baud_rate: 1000000
                     min_motor_id: 2
                     max_motor_id: 2
-                    update_rate: 20
+                    update_rate: 100
         </rosparam>
     </node>
 </launch>
