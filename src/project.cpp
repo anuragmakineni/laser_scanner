@@ -6,6 +6,9 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_listener.h>
 #include <laser_geometry/laser_geometry.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 using namespace std;
 
@@ -25,6 +28,9 @@ class Node {
   laser_geometry::LaserProjection projector_;
   ros::Publisher pc_1_pub_;
   ros::Publisher pc_2_pub_;
+
+  pcl::PointCloud<pcl::PointXYZ> cloud1;
+  pcl::PointCloud<pcl::PointXYZ> cloud2;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
@@ -48,8 +54,16 @@ void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   sensor_msgs::PointCloud2 cloud;
   projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
 
-  pc_1_pub_.publish(cloud);
-  ROS_INFO("laser 1 cb");
+  pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+  pcl::fromROSMsg(cloud, pcl_cloud);
+
+  cloud1 += pcl_cloud;
+
+  sensor_msgs::PointCloud2 cloud_out;
+  pcl::toROSMsg(cloud1, cloud_out);
+  cloud_out.header = cloud.header;
+
+  pc_1_pub_.publish(cloud_out);
 }
 
 void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -61,8 +75,16 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   sensor_msgs::PointCloud2 cloud;
   projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
 
-  pc_2_pub_.publish(cloud);
-  ROS_INFO("laser 2 cb");
+  pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
+  pcl::fromROSMsg(cloud, pcl_cloud);
+
+  cloud2 += pcl_cloud;
+
+  sensor_msgs::PointCloud2 cloud_out;
+  pcl::toROSMsg(cloud2, cloud_out);
+  cloud_out.header = cloud.header;
+
+  pc_2_pub_.publish(cloud_out);
 }
 
 
