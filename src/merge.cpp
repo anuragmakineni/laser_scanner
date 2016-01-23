@@ -30,13 +30,14 @@ class Node {
   pcl::PointCloud<pcl::PointXYZ> topCloud;
   pcl::PointCloud<pcl::PointXYZ> resultCloud;
   ros::NodeHandle pnh_;
-  ros::Subscriber sub;
+  ros::Subscriber sub_top;
+  ros::Subscriber sub_side;
   ros::ServiceServer service;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
-  sub = pnh_.subscribe("project_top", 10, &Node::receiveTopPointCloud, this);
-  sub = pnh_.subscribe("project_side", 10, &Node::receiveSidePointCloud, this);
+  sub_top = pnh_.subscribe("project_top", 10, &Node::receiveTopPointCloud, this);
+  sub_side = pnh_.subscribe("project_side", 10, &Node::receiveSidePointCloud, this);
   service = pnh_.advertiseService("finish", &Node::performMerge, this);
   mergedPublish = pnh_.advertise<sensor_msgs::PointCloud2>("merged", 10);
   ROS_INFO("init");
