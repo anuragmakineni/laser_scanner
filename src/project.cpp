@@ -3,6 +3,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_listener.h>
 #include <laser_geometry/laser_geometry.h>
 
@@ -20,7 +21,7 @@ class Node {
   ros::NodeHandle pnh_;
   ros::Subscriber laser_1_sub;
   ros::Subscriber laser_2_sub;
-  tf::TransformListener tf_listener_;
+  tf::TransformListener listener_;
   laser_geometry::LaserProjection projector_;
 };
 
@@ -33,10 +34,25 @@ Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
 void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
   ROS_INFO("laser 1 cb");
+
+  if(!listener_.waitForTransform("/laser1", "/world", scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment), ros::Duration(1.0))) {
+    return;
+  }
+
+  sensor_msgs::PointCloud2 cloud;
+  projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
+
 }
 
 void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
+  if(!listener_.waitForTransform("/laser2", "/world", scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment), ros::Duration(1.0))) {
+    return;
+  }
+
+  sensor_msgs::PointCloud2 cloud;
+  projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
+
   ROS_INFO("laser 2 cb");
 }
 
