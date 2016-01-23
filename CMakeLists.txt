@@ -13,19 +13,14 @@ catkin_package(
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
     )
 link_directories(
     ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-add_executable(laser_scanner src/merge.cpp)
-target_link_libraries(laser_scanner
+add_executable(merge src/merge.cpp)
+target_link_libraries(merge
     ${catkin_LIBRARIES}
-    ${OpenCV_LIBRARIES}
     ${PCL_COMMON_LIBRARIES}
     ${PCL_IO_LIBRARIES}
     )
-add_service_files(
-  FILES
-  Trigger.srv)
