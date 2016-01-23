@@ -5,9 +5,10 @@ add_definitions(-Wall -std=c++11)
 find_package(catkin REQUIRED COMPONENTS
     roscpp rospy sensor_msgs tf
     message_generation laser_geometry
+    
     )
 
-find_package(PCL 1.7 REQUIRED COMPONENTS common io)
+find_package(PCL 1.7 REQUIRED COMPONENTS common io kdtree)
 catkin_package(
 )
 
@@ -24,6 +25,7 @@ target_link_libraries(merge
     ${catkin_LIBRARIES}
     ${PCL_COMMON_LIBRARIES}
     ${PCL_IO_LIBRARIES}
+    ${PCL_KDTREE_LIBRARIES}
     )
 target_link_libraries(project
     ${catkin_LIBRARIES}
