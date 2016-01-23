@@ -1,5 +1,5 @@
 <launch>
 
-  <node name="merge" pkg="laser_scanner" type="merge" ns="laser_scanner"/>
-
+  <node name="merge" pkg="laser_scanner" type="merge" ns="laser_scanner" output="screen"/>
+  <node name="project" pkg="laser_scanner" type="project" ns="laser_scanner" output="screen"/>
 </launch>
