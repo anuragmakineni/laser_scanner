@@ -23,17 +23,23 @@ class Node {
   ros::Subscriber laser_2_sub;
   tf::TransformListener listener_;
   laser_geometry::LaserProjection projector_;
+  ros::Publisher pc_1_pub_;
+  ros::Publisher pc_2_pub_;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
   laser_1_sub = pnh_.subscribe("laser/scan1", 10, &Node::laser_1_cb, this);
   laser_2_sub = pnh_.subscribe("laser/scan2", 10, &Node::laser_2_cb, this);
+
+  pc_1_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_side", 10);
+  pc_2_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_top", 10);
+
+
   ROS_INFO("init");
 }
 
 void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
-  ROS_INFO("laser 1 cb");
 
   if(!listener_.waitForTransform("/laser1", "/world", scan_in->header.stamp + ros::Duration().fromSec(scan_in->ranges.size()*scan_in->time_increment), ros::Duration(1.0))) {
     return;
@@ -42,6 +48,8 @@ void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   sensor_msgs::PointCloud2 cloud;
   projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
 
+  pc_1_pub_.publish(cloud);
+  ROS_INFO("laser 1 cb");
 }
 
 void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -53,6 +61,7 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   sensor_msgs::PointCloud2 cloud;
   projector_.transformLaserScanToPointCloud("/world", *scan_in, cloud, listener_);
 
+  pc_2_pub_.publish(cloud);
   ROS_INFO("laser 2 cb");
 }
 
