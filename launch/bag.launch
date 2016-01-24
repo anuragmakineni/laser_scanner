@@ -1,0 +1,8 @@
+<launch>
+
+<node name="merge" pkg="laser_scanner" type="merge" ns="laser_scanner" output="screen">
+  <remap from="/laser_scanner/merge/project_side" to="/laser_scanner/project/project_side" />
+  <remap from="/laser_scanner/merge/project_top" to="/laser_scanner/project/project_top" />
+</node>
+
+</launch>

@@ -17,6 +17,8 @@
 #include <pcl/surface/gp3.h>
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/filters/radius_outlier_removal.h>
+
 
 using namespace std;
 using namespace pcl::search;
@@ -61,12 +63,24 @@ void Node::receiveSidePointCloud(const sensor_msgs::PointCloud2& pc)
 
 bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response& res)
 {
-  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;   
+  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   icp.setInputSource(sideCloud.makeShared());
   icp.setInputTarget(topCloud.makeShared());
   icp.align(resultCloud);
+
+
+  //clean up outliers
+  pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
+  outrem.setInputCloud(resultCloud.makeShared());
+  outrem.setRadiusSearch(0.005);
+  outrem.setMinNeighborsInRadius (10);
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+  outrem.filter (*cloud_filtered);
+
+
   sensor_msgs::PointCloud2 cloud2;
-  pcl::toROSMsg(resultCloud, cloud2);
+  pcl::toROSMsg(*cloud_filtered, cloud2);
   mergedPublish.publish(cloud2);
 
   //save as PLY
