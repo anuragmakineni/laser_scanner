@@ -23,7 +23,7 @@ class Node {
   explicit Node(const ros::NodeHandle& pnh);
   void laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
   void laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
-  void crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud);
+  void crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud, int laser, ros::Time time);
   void motor_cb(const dynamixel_msgs::JointState msg);
 
  private:
@@ -81,7 +81,7 @@ void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
   pcl::fromROSMsg(cloud, pcl_cloud);
 
-  crop_cloud(pcl_cloud);
+  crop_cloud(pcl_cloud, 1, scan_in->header.stamp);
 
   if (!starting_config && fabs(angle) < 0.1)
   {
@@ -111,7 +111,7 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
   pcl::fromROSMsg(cloud, pcl_cloud);
 
-  crop_cloud(pcl_cloud);
+  crop_cloud(pcl_cloud, 2, scan_in->header.stamp);
 
    if (!starting_config && fabs(angle) < 0.1)
   {
@@ -129,7 +129,7 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   pc_2_pub_.publish(cloud_out);
 }
 
-void Node::crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud)
+void Node::crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud, int laser, ros::Time time)
 {
 //CROP CLOUD
   pcl::PointCloud<pcl::PointXYZ>::iterator i;
@@ -145,6 +145,14 @@ void Node::crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud)
     }
 
     if (sqrt(pow(i->x,2) + pow(i->y,2)) > max_radius)
+    {
+      remove_point = 1;
+    }
+
+    tf::StampedTransform transform;
+    listener_.lookupTransform ("/world", "/laser1", time, transform);
+
+    if (sqrt(pow(transform.getOrigin().x() - i->x,2) + pow(transform.getOrigin().y() - i->y,2)) > 0.25 && laser == 1)
     {
       remove_point = 1;
     }

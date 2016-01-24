@@ -47,7 +47,7 @@ Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
   sub_top = pnh_.subscribe("project_top", 10, &Node::receiveTopPointCloud, this);
   sub_side = pnh_.subscribe("project_side", 10, &Node::receiveSidePointCloud, this);
   service = pnh_.advertiseService("finish", &Node::performMerge, this);
-  mergedPublish = pnh_.advertise<sensor_msgs::PointCloud2>("merged", 10);
+  mergedPublish = pnh_.advertise<sensor_msgs::PointCloud2>("merged", 10, true);
   ROS_INFO("init");
 }
 
@@ -73,7 +73,7 @@ bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Resp
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
   outrem.setInputCloud(resultCloud.makeShared());
   outrem.setRadiusSearch(0.005);
-  outrem.setMinNeighborsInRadius (10);
+  outrem.setMinNeighborsInRadius (30);
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
   outrem.filter (*cloud_filtered);
@@ -84,13 +84,12 @@ bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Resp
   mergedPublish.publish(cloud2);
 
   //save as PLY
-  pcl::io::savePLYFileASCII("out.ply",resultCloud);
+  pcl::io::savePLYFileASCII("out.ply",*cloud_filtered);
 
   return true;
 
-
-  // // STL Export
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(&resultCloud);
+  // // // STL Export
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(cloud_filtered);
   // pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> n;
   // pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
   // pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
@@ -115,11 +114,11 @@ bool Node::performMerge(std_srvs::Trigger::Request &req, std_srvs::Trigger::Resp
   // pcl::PolygonMesh triangles;
 
   // // Set the maximum distance between connected points (maximum edge length)
-  // gp3.setSearchRadius (0.025);
+  // gp3.setSearchRadius (0.01);
 
   // // Set typical values for the parameters
   // gp3.setMu (2.5);
-  // gp3.setMaximumNearestNeighbors (100);
+  // gp3.setMaximumNearestNeighbors (500);
   // gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
   // gp3.setMinimumAngle(M_PI/18); // 10 degrees
   // gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
