@@ -102,6 +102,5 @@ if __name__ == '__main__':
     node = table_driver()
     try:
         rospy.spin()
-        node.stop()
     except rospy.ROSInterruptException:
         print("Shutting Down.")

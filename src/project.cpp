@@ -9,6 +9,9 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <Eigen/Geometry>
+#include <pcl/filters/crop_box.h>
+#include <math.h>
 
 using namespace std;
 
@@ -19,6 +22,7 @@ class Node {
   explicit Node(const ros::NodeHandle& pnh);
   void laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
   void laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
+  void crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud);
 
  private:
   ros::NodeHandle pnh_;
@@ -31,6 +35,9 @@ class Node {
 
   pcl::PointCloud<pcl::PointXYZ> cloud1;
   pcl::PointCloud<pcl::PointXYZ> cloud2;
+
+  double max_z; 
+  double max_radius;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
@@ -40,8 +47,10 @@ Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
   pc_1_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_side", 10);
   pc_2_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_top", 10);
 
+  max_z = 25.0 / 100.0;
+  max_radius = 12.7 / 100.0;
 
-  ROS_INFO("init");
+  ROS_INFO("init projector_");
 }
 
 void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -56,6 +65,8 @@ void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 
   pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
   pcl::fromROSMsg(cloud, pcl_cloud);
+
+  crop_cloud(pcl_cloud);
 
   cloud1 += pcl_cloud;
 
@@ -78,6 +89,8 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   pcl::PointCloud<pcl::PointXYZ> pcl_cloud;
   pcl::fromROSMsg(cloud, pcl_cloud);
 
+  crop_cloud(pcl_cloud);
+
   cloud2 += pcl_cloud;
 
   sensor_msgs::PointCloud2 cloud_out;
@@ -85,6 +98,39 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
   cloud_out.header = cloud.header;
 
   pc_2_pub_.publish(cloud_out);
+}
+
+void Node::crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud)
+{
+//CROP CLOUD
+  pcl::PointCloud<pcl::PointXYZ>::iterator i;
+
+  for (i = pcl_cloud.begin(); i != pcl_cloud.end();)
+  {
+
+    bool remove_point = 0;
+
+    if (i->z < 0 || i->z > max_z)
+    {
+      remove_point = 1;
+    }
+
+    if (sqrt(pow(i->x,2) + pow(i->y,2)) > max_radius)
+    {
+      remove_point = 1;
+    }
+
+    if (remove_point == 1)
+    {
+      i = pcl_cloud.erase(i);
+    }
+    else
+    {
+      i++;
+    }
+
+  }
+//END CROP CLOUD
 }
 
 
