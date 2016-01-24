@@ -40,7 +40,7 @@ class table_driver(object):
         self.laser_1_called = True
 
         if self.laser_1_called and self.laser_2_called:
-            self.increment = 0.017
+            self.increment = 0.017/2.0
             if self.angle < 0:
                 self.reverse_state = 1
             elif self.angle > 2 * math.pi:
@@ -64,7 +64,7 @@ class table_driver(object):
         self.laser_2_called = True
 
         if self.laser_1_called and self.laser_2_called:
-            self.increment = 0.017
+            self.increment = 0.017/2.0
             if self.angle < 0:
                 self.reverse_state = 1
             elif self.angle > 2 * math.pi:
@@ -85,15 +85,15 @@ class table_driver(object):
         """
         position = data.current_pos
 
-        radius = 0.5  # CHANGE
+        radius = 0.215  # CHANGE
         x = np.cos(position) * radius
         y = np.sin(position) * radius
 
-        self.broadcaster.sendTransform((x, y, 0),
+        self.broadcaster.sendTransform((x, y, 0.13),
                                        tf.transformations.quaternion_from_euler(-math.pi / 2, 0, position + math.pi),
                                        rospy.Time.now(), "laser1", "world")
 
-        self.broadcaster.sendTransform((0, 0, radius),
+        self.broadcaster.sendTransform((0, 0, 0.4203),
                                        tf.transformations.quaternion_from_euler(0, math.pi / 2, position),
                                        rospy.Time.now(), "laser2", "world")
 
