@@ -94,7 +94,7 @@ class table_driver(object):
                                        rospy.Time.now(), "laser1", "world")
 
         self.broadcaster.sendTransform((0, 0, 0.4203),
-                                       tf.transformations.quaternion_from_euler(0, math.pi / 2, position),
+                                       tf.transformations.quaternion_from_euler(0, math.pi / 2, position + math.pi),
                                        rospy.Time.now(), "laser2", "world")
 
 
