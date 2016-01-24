@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include <pcl/filters/crop_box.h>
 #include <math.h>
+#include <dynamixel_msgs/JointState.h>
 
 using namespace std;
 
@@ -23,11 +24,13 @@ class Node {
   void laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
   void laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in);
   void crop_cloud(pcl::PointCloud<pcl::PointXYZ> &pcl_cloud);
+  void motor_cb(const dynamixel_msgs::JointState msg);
 
  private:
   ros::NodeHandle pnh_;
   ros::Subscriber laser_1_sub;
   ros::Subscriber laser_2_sub;
+  ros::Subscriber motor_sub;
   tf::TransformListener listener_;
   laser_geometry::LaserProjection projector_;
   ros::Publisher pc_1_pub_;
@@ -38,19 +41,31 @@ class Node {
 
   double max_z; 
   double max_radius;
+
+  bool starting_config;
+
+  double angle;
 };
 
 Node::Node(const ros::NodeHandle& pnh) : pnh_(pnh) {
   laser_1_sub = pnh_.subscribe("laser/scan1", 10, &Node::laser_1_cb, this);
   laser_2_sub = pnh_.subscribe("laser/scan2", 10, &Node::laser_2_cb, this);
 
+  motor_sub = pnh_.subscribe("/motor_controller/state", 10, &Node::motor_cb, this);
+
   pc_1_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_side", 10);
   pc_2_pub_ = pnh_.advertise<sensor_msgs::PointCloud2>("project_top", 10);
 
-  max_z = 25.0 / 100.0;
-  max_radius = 12.7 / 100.0;
+  pnh_.param("max_z", max_z, 0.25);
+  pnh_.param("max_radius", max_radius, 0.127); 
 
   ROS_INFO("init projector_");
+  starting_config = false;
+}
+
+void Node::motor_cb(const dynamixel_msgs::JointState msg)
+{
+  angle = msg.current_pos;
 }
 
 void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -68,7 +83,14 @@ void Node::laser_1_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 
   crop_cloud(pcl_cloud);
 
-  cloud1 += pcl_cloud;
+  if (!starting_config && fabs(angle) < 0.1)
+  {
+    starting_config = 1;
+    ROS_INFO("Ready to Scan.");
+  }
+
+  if (starting_config)
+    cloud1 += pcl_cloud;
 
   sensor_msgs::PointCloud2 cloud_out;
   pcl::toROSMsg(cloud1, cloud_out);
@@ -91,7 +113,14 @@ void Node::laser_2_cb(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 
   crop_cloud(pcl_cloud);
 
-  cloud2 += pcl_cloud;
+   if (!starting_config && fabs(angle) < 0.1)
+  {
+    starting_config = 1;
+    ROS_INFO("Ready to Scan.");
+  }
+
+  if (starting_config)
+    cloud2 += pcl_cloud;
 
   sensor_msgs::PointCloud2 cloud_out;
   pcl::toROSMsg(cloud2, cloud_out);

@@ -13,6 +13,8 @@
 <node name="table_driver" pkg="laser_scanner" type="table_driver.py" ns="laser_scanner" output="screen">
   <remap from="/laser_scanner/laser/scan1" to="/laser/scan1"/>
   <remap from="/laser_scanner/laser/scan2" to="/laser/scan2"/>
+  <param name="max_z" type="double" value="0.25"/>
+  <param name="max_radius" type="double" value="0.127"/>
 </node>
 
 <include file="$(find laser_scanner)/launch/dynamixel_manager.launch"/>
